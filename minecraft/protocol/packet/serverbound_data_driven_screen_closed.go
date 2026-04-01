@@ -26,6 +26,44 @@ func (*ServerBoundDataDrivenScreenClosed) ID() uint32 {
 }
 
 func (pk *ServerBoundDataDrivenScreenClosed) Marshal(io protocol.IO) {
+	closeReason := closeReasonToString(pk.CloseReason)
 	protocol.OptionalFunc(io, &pk.FormID, io.Uint32)
-	io.Uint8(&pk.CloseReason)
+	io.String(&closeReason)
+	closeReasonFromString(io, &pk.CloseReason, closeReason)
+}
+
+// closeReasonFromString looks up an close reason from a string and writes the result to x.
+func closeReasonFromString(io protocol.IO, x *uint8, s string) {
+	switch s {
+	case "programmaticclose":
+		*x = DataDrivenScreenCloseReasonProgrammaticClose
+	case "programmaticcloseall":
+		*x = DataDrivenScreenCloseReasonProgrammaticCloseAll
+	case "clientcanceled":
+		*x = DataDrivenScreenCloseReasonClientCanceled
+	case "userbusy":
+		*x = DataDrivenScreenCloseReasonUserBusy
+	case "invalidform":
+		*x = DataDrivenScreenCloseReasonInvalidForm
+	default:
+		io.InvalidValue(s, "closeReason", "unknown close reason")
+	}
+}
+
+// closeReasonToString looks up an close reason constant and returns the string representation.
+func closeReasonToString(x uint8) string {
+	switch x {
+	case DataDrivenScreenCloseReasonProgrammaticClose:
+		return "programmaticclose"
+	case DataDrivenScreenCloseReasonProgrammaticCloseAll:
+		return "programmaticcloseall"
+	case DataDrivenScreenCloseReasonClientCanceled:
+		return "clientcanceled"
+	case DataDrivenScreenCloseReasonUserBusy:
+		return "userbusy"
+	case DataDrivenScreenCloseReasonInvalidForm:
+		return "invalidform"
+	default:
+		return "unknown"
+	}
 }
